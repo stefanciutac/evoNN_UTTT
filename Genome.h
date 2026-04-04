@@ -12,7 +12,7 @@ namespace G
     class Genome
     {
     public:
-        Genome(std::vector<int> c);
+        Genome(const std::vector<int>& c);
         Eigen::MatrixXd get_weights(int layer);  // returns the weights
         std::vector<Eigen::MatrixXd> get_weights();
         Eigen::MatrixXd get_biases(int layer);  // returns the biases

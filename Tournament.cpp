@@ -32,7 +32,7 @@ namespace T
         return ranked_genomes;
     }
 
-    int Tournament::play(G::Genome player_1, G::Genome player_2)
+    int Tournament::play(const G::Genome& player_1, const G::Genome& player_2)
     {
         B::Board board = B::Board();
         N::NN nn = N::NN(player_1);
@@ -71,7 +71,7 @@ namespace T
         else return 0;
     }
 
-    std::vector<G::Genome> Tournament::run(std::vector<G::Genome> g)
+    std::vector<G::Genome> Tournament::run(const std::vector<G::Genome>& g)
     {
         scores.resize(g.size());
         genomes = g;
@@ -93,7 +93,7 @@ namespace T
         return get_ranking();
     }
 
-    void Tournament::play_human(G::Genome bot)
+    void Tournament::play_human(const G::Genome& bot)
     {
         B::Board board = B::Board();
         N::NN nn = N::NN(bot);

@@ -11,12 +11,12 @@
 
 namespace N
 {
-    NN::NN(G::Genome g)
+    NN::NN(const G::Genome& g)
         : parameters(g)
     {
     }
 
-    void NN::set_genome(G::Genome genome)  // sets the parameters of the nn according to the genome passed to it
+    void NN::set_genome(const G::Genome& genome)  // sets the parameters of the nn according to the genome passed to it
     {
         parameters = genome;
     }
@@ -39,7 +39,7 @@ namespace N
         return l;
     }
 
-    std::vector<double> NN::forward_propagate(Eigen::MatrixXd inputs)  // outputs final layer values after forward-prop
+    std::vector<double> NN::forward_propagate(const Eigen::MatrixXd& inputs)  // outputs final layer values after forward-prop
     {
         Eigen::MatrixXd previous_layer = inputs;
         for (size_t i = 0; i < parameters.get_weights().size(); i++)
@@ -59,7 +59,7 @@ namespace N
         return outputs;
     }
 
-    int NN::choice(Eigen::MatrixXd inputs)
+    int NN::choice(const Eigen::MatrixXd& inputs)
     {
         double max{};
         int max_index{};

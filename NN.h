@@ -14,14 +14,14 @@ namespace N
     class NN
     {
     public:
-        NN(G::Genome g);
-        void set_genome(G::Genome genome);
-        int choice(Eigen::MatrixXd inputs);
+        NN(const G::Genome& g);
+        void set_genome(const G::Genome& genome);
+        int choice(const Eigen::MatrixXd& inputs);
     private:
         G::Genome parameters;
         Eigen::MatrixXd relu_activation(Eigen::MatrixXd layer);
         Eigen::MatrixXd sigmoid_activation(Eigen::MatrixXd layer);
-        std::vector<double> forward_propagate(Eigen::MatrixXd inputs);
+        std::vector<double> forward_propagate(const Eigen::MatrixXd& inputs);
     };
 } // NN
 

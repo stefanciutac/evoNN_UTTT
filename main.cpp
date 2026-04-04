@@ -1,13 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <Eigen/Dense>
 #include <ctime>
 #include <cstdlib>
 
 #include "Genome.h"
-#include "NN.h"
-#include "Board.h"
 #include "Tournament.h"
 
 int main()
@@ -15,8 +12,8 @@ int main()
     srand(time(0));  // seeds rand()
 
     // Training parameters
-    int population_size = 200;  // the number of genomes in the population
-    int generations = 500;  // the number of generations of training
+    int population_size = 60;  // the number of genomes in the population
+    int generations = 100;  // the number of generations of training
     std::vector<int> configuration = {9, 20, 20, 9};  // the structure of the neural network
     double elite_mutation_rate = 0.0001;
     double good_mutation_rate = 0.01;
@@ -32,6 +29,9 @@ int main()
 
     // Training loop
     G::Genome best_performer = G::Genome(configuration);
+
+    // Start timer
+    std::time_t start = std::time(0);
 
     for (int i = 0; i < generations; i++)
     {
@@ -70,6 +70,12 @@ int main()
         // Create next generation
         genomes = next_generation;
     }
+
+    // End timer
+    std::time_t end = std::time(0);
+    double time_taken = static_cast<double>(end - start);
+
+    std::cout << "Finished in: " << time_taken << std::endl;
 
     // Run test game
     std::cout << "\nTraining over." << std::endl;

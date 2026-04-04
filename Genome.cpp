@@ -7,7 +7,7 @@
 
 namespace G
 {
-    Genome::Genome(std::vector<int> c)
+    Genome::Genome(const std::vector<int>& c)
         : configuration(c)
     {
         for (size_t i = 1; i < configuration.size(); i++)  // populates the weights and biases vectors randomly

@@ -16,13 +16,13 @@ namespace T
     {
     public:
         Tournament();
-        std::vector<G::Genome> run(std::vector<G::Genome> g);
-        void play_human(G::Genome g);
+        std::vector<G::Genome> run(const std::vector<G::Genome>& g);
+        void play_human(const G::Genome& g);
     private:
         std::vector<G::Genome> genomes;
         std::vector<int> scores;
         std::vector<G::Genome> get_ranking();
-        int play(G::Genome player_1, G::Genome player_2);
+        int play(const G::Genome& player_1, const G::Genome& player_2);
     };
 } // T
 

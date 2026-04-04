@@ -5,7 +5,6 @@
 #include "Board.h"
 
 #include <iostream>
-#include <raylib.h>
 
 namespace B
 {
