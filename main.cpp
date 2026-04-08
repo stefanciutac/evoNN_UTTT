@@ -3,6 +3,7 @@
 #include <fstream>
 #include <ctime>
 #include <cstdlib>
+#include <numeric>
 
 #include "Genome.h"
 #include "Tournament.h"
@@ -12,63 +13,36 @@ int main()
     srand(time(0));  // seeds rand()
 
     // Training parameters
-    int population_size = 60;  // the number of genomes in the population
+    std::vector<int> population_config = {30, 30, 30, 30, 30, 30, 30, 30};  // the number of genomes in each segment of the population
+    std::vector<double> mutation_rates = {0.0001, 0.01, 0.5};
+    std::vector<int> mlp_configuration = {9, 20, 20, 9};  // the structure of the neural network
     int generations = 100;  // the number of generations of training
-    std::vector<int> configuration = {9, 20, 20, 9};  // the structure of the neural network
-    double elite_mutation_rate = 0.0001;
-    double good_mutation_rate = 0.01;
-    double bad_mutation_rate = 0.5;
+
+    // Declare vector that holds population
     std::vector<G::Genome> genomes;
 
     // Generate random starting population
-    for (int i = 0; i < population_size; i++)
+    for (int i = 0; i < std::accumulate(population_config.begin(), population_config.end(), 0); i++)
     {
-        G::Genome genome = G::Genome(configuration);
+        G::Genome genome = G::Genome(mlp_configuration);
         genomes.push_back(genome);
     }
-
-    // Training loop
-    G::Genome best_performer = G::Genome(configuration);
 
     // Start timer
     std::time_t start = std::time(0);
 
+    // Training loop
+    G::Genome best_performer = G::Genome(mlp_configuration);
+
     for (int i = 0; i < generations; i++)
     {
-        T::Tournament tournament;
-        genomes = tournament.run(genomes);
-        std::vector<G::Genome> next_generation;
+        T::Tournament tournament = T::Tournament(population_config, mutation_rates);
 
         std::cout << "Generation: " << i << std::endl;
         best_performer = genomes.at(0);
 
-        // Apply mutations
-        int n = genomes.size();
-        for (int place = 0; place < n; place++)
-        {
-            if (place < 5)
-            {
-                next_generation.push_back(genomes.at(place));
-            }
-            else if (place < n/40)
-            {
-                genomes.at(place).mutate(elite_mutation_rate);
-                next_generation.push_back(genomes.at(place));
-            }
-            else if (place < (n/2) + (n/4))
-            {
-                genomes.at(place).mutate(good_mutation_rate);
-                next_generation.push_back(genomes.at(place));
-            }
-            else
-            {
-                genomes.at(place).mutate(bad_mutation_rate);
-                next_generation.push_back(genomes.at(place));
-            }
-        }
-
         // Create next generation
-        genomes = next_generation;
+        genomes = tournament.get_next_generation(genomes);
     }
 
     // End timer
@@ -83,7 +57,7 @@ int main()
     {
         std::cout << "Playing trained bot, generation " << generations << ":" << std::endl;
 
-        T::Tournament tournament;
+        T::Tournament tournament = T::Tournament(population_config, mutation_rates);
         tournament.play_human(best_performer);
     }
 

@@ -17,22 +17,22 @@ namespace G
         }
     }
 
-    Eigen::MatrixXd Genome::get_weights(int layer)
+    const Eigen::MatrixXd& Genome::get_weights(int layer)
     {
         return weights.at(layer);
     }
 
-    std::vector<Eigen::MatrixXd> Genome::get_weights()
+    const std::vector<Eigen::MatrixXd>& Genome::get_weights()
     {
         return weights;
     }
 
-    Eigen::MatrixXd Genome::get_biases(int layer)
+    const Eigen::MatrixXd& Genome::get_biases(int layer)
     {
         return biases.at(layer);
     }
 
-    std::vector<Eigen::MatrixXd> Genome::get_biases()
+    const std::vector<Eigen::MatrixXd>& Genome::get_biases()
     {
         return biases;
     }

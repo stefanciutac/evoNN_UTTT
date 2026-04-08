@@ -13,10 +13,10 @@ namespace G
     {
     public:
         Genome(const std::vector<int>& c);
-        Eigen::MatrixXd get_weights(int layer);  // returns the weights
-        std::vector<Eigen::MatrixXd> get_weights();
-        Eigen::MatrixXd get_biases(int layer);  // returns the biases
-        std::vector<Eigen::MatrixXd> get_biases();
+        const Eigen::MatrixXd& get_weights(int layer);  // returns the weights
+        const std::vector<Eigen::MatrixXd>& get_weights();
+        const Eigen::MatrixXd& get_biases(int layer);  // returns the biases
+        const std::vector<Eigen::MatrixXd>& get_biases();
         void mutate(double rate);
     private:
         std::vector<int> configuration{};  // holds the configuration of the nn (layer -> no. of nodes)
