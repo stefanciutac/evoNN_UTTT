@@ -13,7 +13,7 @@ int main()
     srand(time(0));  // seeds rand()
 
     // Training parameters
-    std::vector<int> population_config = {30, 30, 30, 30, 30, 30, 30, 30};  // the number of genomes in each segment of the population
+    std::vector<int> population_config = {43, 43, 43, 43, 43, 43, 43, 43};  // the number of genomes in each segment of the population
     std::vector<double> mutation_rates = {0.0001, 0.01, 0.5};
     std::vector<int> mlp_configuration = {9, 20, 20, 9};  // the structure of the neural network
     int generations = 100;  // the number of generations of training

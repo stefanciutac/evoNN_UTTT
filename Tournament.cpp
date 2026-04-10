@@ -20,13 +20,13 @@ namespace T
     {
     }
 
-    std::vector<G::Genome> Tournament::get_ranking(const std::vector<int>& scores, int start_inclusive, int end_exclusive)
+    std::vector<G::Genome> Tournament::get_ranking(const std::vector<int>& local_scores, int start_inclusive, int end_exclusive)
     {
         std::multimap<int, G::Genome> ranking;
         std::vector<G::Genome> ranked_genomes;
         for (size_t i = start_inclusive; i < end_exclusive; i++)
         {
-            ranking.emplace(scores.at(i), genomes.at(i));
+            ranking.emplace(local_scores.at(i), genomes.at(i));
         }
 
         for (std::pair score_genome_pair: ranking)
@@ -78,16 +78,14 @@ namespace T
     {
         std::vector<int> local_scores = scores;  // local = lower chance of it biting me in the behind later
 
-        int mp{};
         for (int player_1 = start_inclusive; player_1 < end_exclusive - 1; player_1++)
         {
             for (size_t player_2 = player_1 + 1; player_2 < end_exclusive; player_2++)
             {
-                if (start_inclusive >= 180) std::cout << player_1 << " vs " << player_2 << std::endl;
-                mp ++;
+                // if (local_scores.size() <= player_1 || local_scores.size() <= player_2) std::cout << "Bug found! Size of local_scores = " << local_scores.size() << std::endl;  // A bug has been found!
                 // Play matchup and update scores
                 int winner = play(genomes.at(player_1), genomes.at(player_2));
-                if (winner == 1) local_scores.at(player_1) += 3;
+                if (winner == 1) local_scores.at(player_1) += 3;  // Check that `scores` is actually big enough
                 else if (winner == -1) local_scores.at(player_2) += 3;
                 else
                 {
@@ -97,7 +95,7 @@ namespace T
             }
         }
 
-        std::cout << "Finished matchups for " << start_inclusive << " - " << end_exclusive << ", " << mp << " played" << std::endl;
+        // std::cout << "Finished matchups for " << start_inclusive << " - " << end_exclusive << std::endl;
         return get_ranking(local_scores, start_inclusive, end_exclusive);
     }
 
@@ -127,20 +125,23 @@ namespace T
             for (int j = 0; j < i; j ++) start_inclusive += config.at(j);
             end_exclusive = start_inclusive + config.at(i);
 
-            if (start_inclusive >= 180) std::cout << "New run | start_inclusive = " << start_inclusive << " | end_exclusive = " << end_exclusive << std::endl;
+            // if (start_inclusive >= 180) std::cout << "New run | start_inclusive = " << start_inclusive << " | end_exclusive = " << end_exclusive << std::endl;
             threads.emplace_back(std::async(std::launch::async, &Tournament::run, this, std::ref(g), start_inclusive, end_exclusive)); // start threads
         }
         for (std::future<std::vector<G::Genome>>& thread : threads) ranking.push_back(thread.get());  // join threads
 
         // Selection
-        std::cout << "135" << std::endl;
         std::vector<std::vector<G::Genome>> new_groups{};
 
         for (int i = 0; i < number_of_cores; i++)
         {
             std::vector<G::Genome> segment = ranking.at(i);
             std::vector<G::Genome> new_segment{};
-            for (int j = 0; j < segment.size(); j ++)
+
+            // std::cout << "Segment size for core " << i << " is " << segment.size() << std::endl;
+
+            int j = 0;
+            while (new_segment.size() < segment.size())
             {
                 if (j < 3)
                 {
@@ -177,11 +178,13 @@ namespace T
                     segment.at(random_location).mutate(mutation_rates.at(2));  // Apply the bad mutation rate
                     new_segment.push_back(segment.at(random_location));
                 }
+                j ++;
             }
             new_groups.push_back(new_segment);
+            // std::cout << "Size of new segment is " << new_segment.size() << std::endl;
         }
 
-        std::cout << "181" << std::endl;
+        // std::cout << "181" << std::endl;
         // Return new generation
         for (std::vector<G::Genome> group : new_groups) for (G::Genome genome : group) next_generation.push_back(genome);
 
