@@ -17,7 +17,6 @@ namespace T
     public:
         Tournament(const std::vector<int>& p, const std::vector<double>& mutation_rates);
         std::vector<G::Genome> get_next_generation(const std::vector<G::Genome>& g);
-        void play_human(const G::Genome& g);  // move to separate "benchmark" class
     private:
         std::vector<G::Genome> genomes;
         std::vector<int> scores;

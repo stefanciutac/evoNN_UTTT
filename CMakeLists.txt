@@ -13,6 +13,8 @@ add_executable(ultimate_ttt_bot_v1 main.cpp
         Board.cpp
         Board.h
         Tournament.cpp
-        Tournament.h)
+        Tournament.h
+        Benchmark.cpp
+        Benchmark.h)
 
 target_link_libraries(ultimate_ttt_bot_v1 PRIVATE Eigen3::Eigen)

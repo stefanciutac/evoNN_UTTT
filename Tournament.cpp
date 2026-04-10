@@ -190,49 +190,4 @@ namespace T
 
         return next_generation;
     }
-
-    void Tournament::play_human(const G::Genome& bot)
-    {
-        B::Board board = B::Board();
-        N::NN nn = N::NN(bot);
-
-        bool is_bot_turn = true;
-        std::string last_played{};
-
-        while (!board.is_game_drawn() && !board.is_game_won())
-        {
-            if (is_bot_turn)
-            {
-                nn.set_genome(bot);
-                int move = nn.choice(board.to_nn_input());
-                if (board.is_empty(move))
-                {
-                    board.make_move(move, 1);
-                    last_played = "Bot";
-                    is_bot_turn = false;
-                    std::cout << std::endl;
-                    board.render();
-                }
-                else
-                {
-                    std::cout << "Bot played illegal move. You win." << std::endl;
-                    last_played = "Human";
-                    break;
-                }
-            }
-            else
-            {
-                int human_move{};
-                std::cout << "Enter the square 0-8 of the move you would like to play: " << std::endl;
-                std::cin >> human_move;
-                board.make_move(human_move, -1);
-                last_played = "Human";
-                is_bot_turn = true;
-                std::cout << std::endl;
-                board.render();
-            }
-        }
-        if (board.is_game_won()) std::cout << "\n" << last_played << " won!" << std::endl;
-        else std::cout << "\nDraw." << std::endl;
-    }
 } // T
