@@ -17,6 +17,7 @@ namespace Be {
         Benchmark();
         void play_human(const G::Genome& g);
         double get_rating(const G::Genome& g);
+        double standard_deviation(std::vector<double> values);
     private:
         int get_random_move(B::Board board);
         int play(const G::Genome& genome);

@@ -4,12 +4,27 @@
 
 #include "Benchmark.h"
 
+#include <numeric>
+
 #include "Board.h"
 #include "NN.h"
 
 namespace Be {
     Benchmark::Benchmark()  // empty constructor - might be useful later
     {
+    }
+
+    double Benchmark::standard_deviation(std::vector<double> values)
+    {
+        double sum = std::accumulate(values.begin(), values.end(), 0.0);
+        double mean = sum / static_cast<double>(values.size());
+
+        double sum_squared_deviations{};
+        for (double value: values) sum_squared_deviations += pow((value - mean), 2);
+
+        double variance = sum_squared_deviations / (values.size() - 1.0);  // dividing by n-1 to account for bias
+
+        return std::sqrt(variance);
     }
 
     // Return a random legal move
