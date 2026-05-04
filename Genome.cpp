@@ -5,8 +5,6 @@
 #include "Genome.h"
 #include <cstdlib>
 
-namespace G
-{
     Genome::Genome(const std::vector<int>& c)
         : configuration(c)
     {
@@ -71,4 +69,3 @@ namespace G
             }
         }
     }
-} // G

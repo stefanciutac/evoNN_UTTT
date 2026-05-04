@@ -10,18 +10,16 @@
 #include "Board.h"
 #include "Genome.h"
 
-namespace Be {
-    class Benchmark
-    {
-    public:
-        Benchmark();
-        void play_human(const G::Genome& g);
-        double get_rating(const G::Genome& g);
-        double standard_deviation(std::vector<double> values);
-    private:
-        int get_random_move(B::Board board);
-        int play(const G::Genome& genome);
-    };
-} // Be
+class Benchmark
+{
+public:
+    Benchmark();
+    void play_human(const Genome& g);
+    double get_rating(const Genome& g);
+    double standard_deviation(std::vector<double> values);
+private:
+    int get_random_move(Board board);
+    int play(const Genome& genome);
+};
 
 #endif //ULTIMATE_TTT_BOT_V1_BENCHMARK_H

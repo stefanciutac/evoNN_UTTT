@@ -6,10 +6,10 @@
 
 #include <numeric>
 
+#include "Genome.h"
 #include "Board.h"
 #include "NN.h"
 
-namespace Be {
     Benchmark::Benchmark()  // empty constructor - might be useful later
     {
     }
@@ -28,17 +28,17 @@ namespace Be {
     }
 
     // Return a random legal move
-    int Benchmark::get_random_move(B::Board board)
+    int Benchmark::get_random_move(Board board)
     {
         int move = rand()%9;
         while (!board.is_empty(move)) move = rand()%9;
         return move;
     }
 
-    int Benchmark::play(const G::Genome& genome)
+    int Benchmark::play(const Genome& genome)
     {
-        B::Board board = B::Board();
-        N::NN nn1 = N::NN(genome);
+        Board board = Board();
+        NN nn1 = NN(genome);
 
         bool genome_turn = rand()%2;  // randomise who starts
         int last_played{};
@@ -69,7 +69,7 @@ namespace Be {
     }
 
     // Produce a rating that is essentially a normalised win rate against a random mover
-    double Benchmark::get_rating(const G::Genome &g)
+    double Benchmark::get_rating(const Genome &g)
     {
         // Play n-game match
         int n = 1000;
@@ -86,10 +86,10 @@ namespace Be {
     }
 
     // Play a game against the human in the console
-    void Benchmark::play_human(const G::Genome& bot)
+    void Benchmark::play_human(const Genome& bot)
     {
-        B::Board board = B::Board();
-        N::NN nn = N::NN(bot);
+        Board board = Board();
+        NN nn = NN(bot);
 
         bool is_bot_turn = rand()%2;
         std::string last_played{};
@@ -130,4 +130,3 @@ namespace Be {
         if (board.is_game_won()) std::cout << "\n" << last_played << " won!" << std::endl;
         else std::cout << "\nDraw." << std::endl;
     }
-} // Be

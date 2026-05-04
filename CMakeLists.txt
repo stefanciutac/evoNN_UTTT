@@ -12,9 +12,9 @@ add_executable(ultimate_ttt_bot_v1 main.cpp
         Genome.h
         Board.cpp
         Board.h
-        Tournament.cpp
-        Tournament.h
         Benchmark.cpp
-        Benchmark.h)
+        Benchmark.h
+        DiffEvolution.cpp
+        DiffEvolution.h)
 
 target_link_libraries(ultimate_ttt_bot_v1 PRIVATE Eigen3::Eigen)
