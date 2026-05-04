@@ -45,7 +45,7 @@ namespace T
         N::NN nn1 = N::NN(player_1);
         N::NN nn2 = N::NN(player_2);
 
-        bool player_1_turn = true;
+        bool player_1_turn = rand() % 2;
         int last_played{};
 
         while (!board.is_game_drawn() && !board.is_game_won())
@@ -85,8 +85,8 @@ namespace T
                 // if (local_scores.size() <= player_1 || local_scores.size() <= player_2) std::cout << "Bug found! Size of local_scores = " << local_scores.size() << std::endl;  // A bug has been found!
                 // Play matchup and update scores
                 int winner = play(genomes.at(player_1), genomes.at(player_2));
-                if (winner == 1) scores.at(player_1) += 3;  // Check that `scores` is actually big enough
-                else if (winner == -1) scores.at(player_2) += 3;
+                if (winner == 1) {scores.at(player_1) += 3; scores.at(player_2) -= 3;}  // Check that `scores` is actually big enough
+                else if (winner == -1) {scores.at(player_2) += 3; scores.at(player_1) -= 3;}
                 else
                 {
                     scores.at(player_1) ++;
@@ -108,7 +108,7 @@ namespace T
         for (int i = 0; i < local_genomes.size(); i++) league_table.push_back({i, 0, 0});
 
         // Main tournament loop
-        int no_of_rounds = log2(local_genomes.size());
+        int no_of_rounds = /*log2(local_genomes.size())*/local_genomes.size() / 2;
 
         for (int round = 0; round < no_of_rounds; round ++)
         {
@@ -155,6 +155,15 @@ namespace T
 
         std::vector<G::Genome> ranked_genomes{};
         for (std::vector<int> record: league_table) ranked_genomes.push_back(local_genomes.at(record.front()));
+
+        /*
+        std::cout << "League table: " << std::endl;
+        for (int i = 0; i < league_table.size(); i ++)
+        {
+            std::vector<int> record = league_table.at(i);
+            std::cout << "Place: " << i << "\tGenome: " << record.front() << "\tScore: " << record.at(1) << std::endl;
+        }
+        */
 
         return ranked_genomes;
     }
@@ -250,7 +259,7 @@ namespace T
 
             while (new_segment.size() < segment.size())
             {
-                if (new_segment.size() == 0) new_segment.push_back(segment.front());  // Basic elitism
+                if (new_segment.size() == 0) for (int agent = 0; agent < 40; agent ++) new_segment.push_back(segment.at(agent));  // Basic elitism
                 else if (needs_more_diversity)
                 {
                     int random_segment = rand() % ranking.size();
@@ -297,6 +306,16 @@ namespace T
 
         genomes = g;
 
+        // Randomise which genomes are in each island by scrambling the population
+        for (int scramble_rounds = 0; scramble_rounds < genomes.size(); scramble_rounds ++)
+        {
+            int rand_1 = rand() % genomes.size();
+            int rand_2 = rand() % genomes.size();
+            G::Genome temp = genomes.at(rand_1);;
+            genomes.at(rand_1) = genomes.at(rand_2);
+            genomes.at(rand_2) = temp;
+        }
+
         // Configuration boilerplate - determines which segment of the population to allocate to each thread
         int number_of_cores = std::max(std::thread::hardware_concurrency(), static_cast<unsigned int>(3));
         std::vector<int> config{};
@@ -316,7 +335,7 @@ namespace T
             end_exclusive = start_inclusive + config.at(i);
 
             // if (start_inclusive >= 180) std::cout << "New run | start_inclusive = " << start_inclusive << " | end_exclusive = " << end_exclusive << std::endl;
-            threads.emplace_back(std::async(std::launch::async, &Tournament::swiss, this, std::ref(g), start_inclusive, end_exclusive)); // start threads
+            threads.emplace_back(std::async(std::launch::async, &Tournament::swiss, this, std::ref(genomes), start_inclusive, end_exclusive)); // start threads
         }
         for (std::future<std::vector<G::Genome>>& thread : threads) ranking.push_back(thread.get());  // join threads
 

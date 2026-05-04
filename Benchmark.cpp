@@ -82,7 +82,7 @@ namespace Be {
             else if (result == 0) draw_count ++;
         }
 
-        return static_cast<double>(win_count)/static_cast<double>(n-draw_count);
+        return static_cast<double>(win_count)/static_cast<double>(n - draw_count);
     }
 
     // Play a game against the human in the console

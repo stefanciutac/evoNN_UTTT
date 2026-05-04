@@ -21,15 +21,15 @@ int main()
     srand(time(0));  // seeds rand()
 
     // Training parameters
-    std::vector<int> population_config = {100, 100, 100, 100, 100, 100, 100, 100};  // the number of genomes in each segment of the population, MUST BE EVEN for swiss selection
+    std::vector<int> population_config = {200, 200, 200, 200, 200, 200, 200, 200};  // the number of genomes in each segment of the population, MUST BE EVEN for swiss selection
     std::vector<double> mutation_rates = {0.001, 0.05, 0.5};
-    std::vector<int> mlp_configuration = {9, 24, 9};  // the structure of the neural network
-    int generations = 10000;  // the number of generations of training
+    std::vector<int> mlp_configuration = {9, 12, 9};  // the structure of the neural network
+    int generations = 100;  // the number of generations of training
 
     // New selection parameters
     double mutation_coefficient = 0.2;
-    double mutation_index = 2;
-    double elite_success_rate = 0.9;
+    double mutation_index = 3;
+    double elite_success_rate = 0.95;
 
     // Declare vector that holds population
     std::vector<G::Genome> genomes;
@@ -63,7 +63,7 @@ int main()
         std::cout << "Generation: " << i << std::endl;
 
         // Benchmark
-        if ((i + 1) % 100 == 0 || i == 0)
+        if ((i + 1) % 10 == 0 || i == 0)
         {
             std::ofstream benchmark_file("benchmark.txt", std::ios::app);
 
@@ -75,8 +75,11 @@ int main()
 
             for (int j = 0; j < genomes.size(); j++)
             {
-                if (j % population_config.front() == 0) elite_sums.emplace_back(std::async(std::launch::async, &Be::Benchmark::get_rating, benchmark, genomes.at(j)));
-                else if (j % 10 == 0)
+                if (j % population_config.front() == 0 || j % population_config.front() == 1 || j % population_config.
+                    front() == 2 || j % population_config.front() == 3 || j % population_config.front() == 4) elite_sums
+                        .emplace_back(std::async(std::launch::async, &Be::Benchmark::get_rating, benchmark,
+                                                 genomes.at(j)));
+                else if (j % 2 == 0)
                 {
                     average_sums.emplace_back(std::async(std::launch::async, &Be::Benchmark::get_rating, benchmark, genomes.at(j)));
                     average_sampled += 1.0;
@@ -96,7 +99,7 @@ int main()
             benchmark_file << i << "," << average_sum / (average_sampled) << ",";
             benchmark_file << benchmark.standard_deviation(avg_sums) << ",";
 
-            benchmark_file << elite_sum / static_cast<double>(population_config.size()) << ",";
+            benchmark_file << elite_sum / static_cast<double>(population_config.size() * 5) << ",";
             benchmark_file << benchmark.standard_deviation(elt_sums) << ",";
 
             benchmark_file << benchmark.standard_deviation(combine_vectors(elt_sums, avg_sums)) << std::endl;
@@ -105,7 +108,7 @@ int main()
 
             std::cout << "Average agent fitness: " << average_sum / (average_sampled) << std::endl;
             std::cout << "Average agent fitness standard deviation: " << benchmark.standard_deviation(avg_sums) << std::endl;
-            std::cout << "Average elite individuals fitness: " << elite_sum / (population_config.size()) << std::endl;
+            std::cout << "Average elite individuals fitness: " << elite_sum / (population_config.size() * 5) << std::endl;
             std::cout << "Average elite individual fitness standard deviation: " << benchmark.standard_deviation(elt_sums) << std::endl;
             std::cout << "Average population fitness standard deviation: " << benchmark.standard_deviation(combine_vectors(elt_sums, avg_sums)) << std::endl;
         }
