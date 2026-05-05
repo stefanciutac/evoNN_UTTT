@@ -18,12 +18,12 @@ std::vector<int> Board::get_board()
     return board;
 }
 
-Eigen::MatrixXd Board::to_nn_input()
+Eigen::MatrixXd Board::to_nn_input(const std::vector<int>& input_state)
 {
-    Eigen::MatrixXd input(board.size(), 1);
-    for (size_t i = 0; i < board.size(); i++)
+    Eigen::MatrixXd input(input_state.size(), 1);
+    for (size_t i = 0; i < input_state.size(); i++)
     {
-        input(i, 0) = static_cast<int>(board.at(i));
+        input(i, 0) = static_cast<int>(input_state.at(i));
     }
     return input;
 }
@@ -105,31 +105,94 @@ int Board::play(const Genome& player_1, const Genome& player_2)
     NN nn2 = NN(player_2);
 
     bool player_1_turn = rand() % 2;
-    int last_played{};
+    int last_played = 0;
+    int current_symbol = -1;
+
+    int moves_played = 0;
 
     while (!board.is_game_drawn() && !board.is_game_won())
     {
+        if (moves_played > 8)
+        {
+            return 3 + last_played;
+        }
+
         if (player_1_turn)
         {
-            int move = nn1.choice(board.to_nn_input());
-            if (board.is_empty(move))
-            {
-                board.make_move(move, 1);
-                last_played = 1;
-                player_1_turn = false;
-            }
-            else return -1;  // give the game to opponent if move is illegal
+            std::vector<int> input = board.get_board();
+            input.push_back(current_symbol);
+
+            int move = nn1.choice(board.to_nn_input(input));
+            board.make_move(move, current_symbol);
+            last_played = 1;
+            player_1_turn = false;
+            current_symbol *= -1;
         }
         else
         {
-            int move = nn2.choice(board.to_nn_input());
-            if (board.is_empty(move))
-            {
-                board.make_move(move, -1);
-                last_played = -1;
-                player_1_turn = true;
-            }
+            std::vector<int> input = board.get_board();
+            input.push_back(current_symbol);
+
+            int move = nn2.choice(board.to_nn_input(input));
+            board.make_move(move, current_symbol);
+            last_played = -1;
+            player_1_turn = true;
+            current_symbol *= -1;
         }
+        moves_played ++;
+    }
+    if (board.is_game_won()) return last_played;
+    else return 0;
+}
+
+int Board::get_random_move(Board& board)
+{
+    int move = rand() % 9;
+    while (!board.is_empty(move)) move = rand() % 9;
+    return move;
+}
+
+int Board::play_random_mover(const Genome& genome)
+{
+    Board board = Board();
+    NN nn1 = NN(genome);
+
+    bool player_1_turn = rand() % 2;
+    int last_played = 0;
+    int current_symbol = -1;
+
+    int moves_played = 0;
+
+    while (!board.is_game_drawn() && !board.is_game_won())
+    {
+        if (moves_played > 8)
+        {
+            return 3 + last_played;
+        }
+
+        if (player_1_turn)
+        {
+            std::vector<int> input = board.get_board();
+            input.push_back(current_symbol);
+
+            int move = nn1.choice(board.to_nn_input(input));
+            board.make_move(move, current_symbol);
+            last_played = 1;
+            player_1_turn = false;
+            current_symbol *= -1;
+        }
+        else
+        {
+            std::vector<int> input = board.get_board();
+            input.push_back(current_symbol);
+
+            int move = get_random_move(board);
+            board.make_move(move, current_symbol);
+            last_played = -1;
+            player_1_turn = true;
+            current_symbol *= -1;
+        }
+        moves_played ++;
     }
     if (board.is_game_won()) return last_played;
     else return 0;

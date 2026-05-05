@@ -8,6 +8,7 @@
 
 #include "Genome.h"
 #include "Board.h"
+#include "DiffEvolution.h"
 #include "NN.h"
 
     Benchmark::Benchmark()  // empty constructor - might be useful later
@@ -27,64 +28,6 @@
         return std::sqrt(variance);
     }
 
-    // Return a random legal move
-    int Benchmark::get_random_move(Board board)
-    {
-        int move = rand()%9;
-        while (!board.is_empty(move)) move = rand()%9;
-        return move;
-    }
-
-    int Benchmark::play(const Genome& genome)
-    {
-        Board board = Board();
-        NN nn1 = NN(genome);
-
-        bool genome_turn = rand()%2;  // randomise who starts
-        int last_played{};
-
-        while (!board.is_game_drawn() && !board.is_game_won())
-        {
-            if (genome_turn)
-            {
-                int move = nn1.choice(board.to_nn_input());
-                if (board.is_empty(move))
-                {
-                    board.make_move(move, 1);
-                    last_played = 1;
-                    genome_turn = false;
-                }
-                else return -1;  // give the game to opponent if move is illegal
-            }
-            else
-            {
-                int move = get_random_move(board);
-                board.make_move(move, -1);
-                last_played = -1;
-                genome_turn = true;
-            }
-        }
-        if (board.is_game_won()) return last_played;
-        else return 0;
-    }
-
-    // Produce a rating that is essentially a normalised win rate against a random mover
-    double Benchmark::get_rating(const Genome &g)
-    {
-        // Play n-game match
-        int n = 1000;
-        int win_count{};
-        int draw_count{};
-        for (int i = 0; i < n; i ++)
-        {;
-            int result = play(g);
-            if (result == 1) win_count++;
-            else if (result == 0) draw_count ++;
-        }
-
-        return static_cast<double>(win_count)/static_cast<double>(n - draw_count);
-    }
-
     // Play a game against the human in the console
     void Benchmark::play_human(const Genome& bot)
     {
@@ -93,36 +36,35 @@
 
         bool is_bot_turn = rand()%2;
         std::string last_played{};
+        int current_symbol = -1;
 
         while (!board.is_game_drawn() && !board.is_game_won())
         {
             if (is_bot_turn)
             {
                 nn.set_genome(bot);
-                int move = nn.choice(board.to_nn_input());
-                if (board.is_empty(move))
-                {
-                    board.make_move(move, 1);
-                    last_played = "Bot";
-                    is_bot_turn = false;
-                    std::cout << std::endl;
-                    board.render();
-                }
-                else
-                {
-                    std::cout << "Bot played illegal move. You win." << std::endl;
-                    last_played = "Human";
-                    break;
-                }
+                std::vector<int> input = board.get_board();
+                input.push_back(current_symbol);
+
+                int move = nn.choice(board.to_nn_input(input));
+                board.make_move(move, current_symbol);
+                last_played = "Bot";
+                is_bot_turn = false;
+                current_symbol *= -1;
+
+                std::cout << std::endl;
+                board.render();
             }
             else
             {
                 int human_move{};
                 std::cout << "Enter the square 0-8 of the move you would like to play: " << std::endl;
                 std::cin >> human_move;
-                board.make_move(human_move, -1);
+                board.make_move(human_move, current_symbol);
                 last_played = "Human";
                 is_bot_turn = true;
+                current_symbol *= -1;
+
                 std::cout << std::endl;
                 board.render();
             }

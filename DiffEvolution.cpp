@@ -7,6 +7,7 @@
 #include <vector>
 #include <future>
 
+#include "NN.h"
 #include "Genome.h"
 #include "DiffEvolution.h"
 #include "Board.h"
@@ -43,8 +44,51 @@ DiffEvolution::Game DiffEvolution::play_game(Agent& agent, Agent test_opp)
     int result = board.play(agent.genome, test_opp.genome);
     if (result == 1) game = Game{1, test_opp.elo};
     else if (result == -1) game = Game{-1, test_opp.elo};
-    else game = Game{0, test_opp.elo};
+    else if (result == 0) game = Game{0, test_opp.elo};
+    else if (result == 2)
+    {
+        non_terminating_games ++;
+        game = Game{0, test_opp.elo};
+        has_not_failed = false;
+    }
+    else if (result == 4)
+    {
+        non_terminating_games ++;
+        game = Game{-1, test_opp.elo};
+        has_not_failed = false;
+    }
     return game;
+}
+
+DiffEvolution::Game DiffEvolution::play_anchor(Agent& agent)
+{
+    double anchor_elo = 1000.0;
+    Game game;
+    Board board = Board();
+    int result = board.play_random_mover(agent.genome);
+    if (result == 1) game = Game{1, anchor_elo, true};
+    else if (result == -1) game = Game{-1, anchor_elo, true};
+    else if (result == 0) game = Game{0, anchor_elo, true};
+    else if (result == 2)
+    {
+        non_terminating_games ++;
+        game = Game{0, anchor_elo, true};
+        has_not_failed = false;
+    }
+    else if (result == 4)
+    {
+        non_terminating_games ++;
+        game = Game{-1, anchor_elo, true};
+        has_not_failed = false;
+    }
+    return game;
+}
+
+double DiffEvolution::get_rating(Agent agent)
+{
+    if (agent.d_vs_rand != agent.games_vs_rand) return (static_cast<double>(agent.w_vs_rand) / static_cast<double>(agent.games_vs_rand - agent.d_vs_rand));
+    else if (agent.games_vs_rand != 0) return 1.0;
+    return -1.0;
 }
 
 void DiffEvolution::pre_play()
@@ -53,26 +97,26 @@ void DiffEvolution::pre_play()
     for (Agent& agent : agents)
     {
         agent.games = {};
+        agent.games_vs_rand = 0;
+        agent.w_vs_rand = 0;
+        agent.d_vs_rand = 0;
 
-        if (hall_of_fame.size() > 10)
+        // Play anchor
+        for (int i = 0; i < std::max(match_length * hall_of_fame.size() * 0.5, static_cast<double>(match_length * 5)); i += 8)
         {
-            Agent test_opp = hall_of_fame.front();
-            for (int i = 0; i < 24; i += 8)
-            {
-                std::vector<std::future<Game>> thread_games{};
+            std::vector<std::future<Game>> thread_games{};
 
-                for (int thread = 0; thread < 8; thread++) thread_games.emplace_back(
-                    std::async(std::launch::async, &DiffEvolution::play_game, this, std::ref(agent),
-                               std::ref(test_opp)));
+            for (int thread = 0; thread < 8; thread++) thread_games.emplace_back(
+                std::async(std::launch::async, &DiffEvolution::play_anchor, this, std::ref(agent)));
 
-                for (std::future<Game>& thread_game: thread_games) agent.games.push_back(thread_game.get());
-            }
+            for (std::future<Game>& thread_game: thread_games) agent.games.push_back(thread_game.get());
         }
 
+        // Play hall of fame
         for (int index = 0; index < hall_of_fame.size(); index ++)
         {
             Agent test_opp = hall_of_fame.at(index);
-            for (int i = 0; i < 24; i += 8)
+            for (int i = 0; i < match_length; i += 8)
             {
                 std::vector<std::future<Game>> thread_games{};
 
@@ -178,26 +222,25 @@ void DiffEvolution::evolve()
         // benchmark new_agent
         new_agent.elo = 1000;
         new_agent.games = {};
+        new_agent.games_vs_rand = 0;
+        new_agent.w_vs_rand = 0;
+        new_agent.d_vs_rand = 0;
 
-        if (hall_of_fame.size() > 10)
+        // Play anchor
+        for (int j = 0; j < std::max(match_length * hall_of_fame.size() * 0.5, static_cast<double>(match_length * 5)); j += 8)
         {
-            Agent test_opp = hall_of_fame.front();
-            for (int i = 0; i < 24; i += 8)
-            {
-                std::vector<std::future<Game>> thread_games{};
+            std::vector<std::future<Game>> thread_games{};
 
-                for (int thread = 0; thread < 8; thread++) thread_games.emplace_back(
-                    std::async(std::launch::async, &DiffEvolution::play_game, this, std::ref(new_agent),
-                               std::ref(test_opp)));
+            for (int thread = 0; thread < 8; thread++) thread_games.emplace_back(
+                std::async(std::launch::async, &DiffEvolution::play_anchor, this, std::ref(new_agent)));
 
-                for (std::future<Game>& thread_game: thread_games) new_agent.games.push_back(thread_game.get());
-            }
+            for (std::future<Game>& thread_game: thread_games) new_agent.games.push_back(thread_game.get());
         }
 
-        for (int index = 0; index < hall_of_fame.size(); index ++)
+        for (int k = 0; k < hall_of_fame.size(); k ++)
         {
-            Agent test_opp = hall_of_fame.at(index);
-            for (int i = 0; i < 24; i += 8)
+            Agent test_opp = hall_of_fame.at(k);
+            for (int j = 0; j < match_length; j += 8)
             {
                 std::vector<std::future<Game>> thread_games{};
 
@@ -221,6 +264,21 @@ void DiffEvolution::evolve()
     {
         return a.elo > b.elo;
     });
-    if (generation % 5 == 0) hall_of_fame.push_back({agents.front().genome, agents.front().elo, {}});
+    if (generation % 10 == 0) hall_of_fame.push_back({agents.front().genome, agents.front().elo, {}});
+
+    for (Agent& agent: agents)
+    {
+        for (Game game: agent.games)
+        {
+            if (game.is_vs_anchor)
+            {
+                if (game.result == 1) agent.w_vs_rand ++;
+                else if (game.result == 0) agent.d_vs_rand ++;
+                agent.games_vs_rand ++;
+            }
+        }
+    }
+
     generation ++;
+    if (has_not_failed) good_generations_played ++;
 }
